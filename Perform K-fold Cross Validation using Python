@@ -1,0 +1,36 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import cross_val_score
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split, KFold
+import matplotlib.pyplot as pltdata=pd.read_csv('Wholesale customers data.csv')
+data.head()
+data.shape
+pd.DataFrame({'Count':data.isnull().sum(),'Percentage':data.isnull().sum()/data.shape[0]})
+target_ratio=pd.DataFrame({'Counts':data.Region.value_counts(),'Percentage':data.Region.value_counts()/len(data)})
+target_ratio
+plt.figure(figsize = (10,2))
+plt.barh(target_ratio.index, target_ratio.Percentage)
+plt.xlabel('Percentage')
+plt.show()
+data=pd.get_dummies(data,columns=['Channel'])
+feat=['Fresh','Milk','Grocery','Frozen','Detergents_Paper','Delicassen']
+plt.boxplot(data[feat].T,labels=feat,vert=False)
+plt.show()
+data[feat]=MinMaxScaler().fit_transform(data[feat])
+plt.boxplot(data[feat].T,labels=feat,vert=False)
+plt.show()
+data.head()
+X=data.drop(['Region'],axis=1)
+y=data.Region
+kf=KFold(n_splits=4)
+kf.get_n_splits(X,y)
+clf=DecisionTreeClassifier()
+for train_ind, test_ind in kf.split(X,y):
+    clf.fit(X.iloc[train_ind,:],y[train_ind])
+    pred=clf.predict(X.iloc[test_ind,:])
+    print(round(accuracy_score(y[test_ind],pred),3))
+cv =cross_val_score(DecisionTreeClassifier(),X,y,cv=4,scoring='accuracy')
+cv
